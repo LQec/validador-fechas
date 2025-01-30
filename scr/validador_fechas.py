@@ -1,44 +1,51 @@
-import os
-from datetime import datetime
+def es_bisiesto(anio):
+    """ Verifica si un año es bisiesto """
+    return (anio % 4 == 0 and anio % 100 != 0) or (anio % 400 == 0)
 
+def obtener_dias_mes(mes, anio):
+    """ Retorna la cantidad de días de un mes en un año determinado """
+    if mes in [1, 3, 5, 7, 8, 10, 12]:  # Meses con 31 días
+        return 31
+    elif mes in [4, 6, 9, 11]:  # Meses con 30 días
+        return 30
+    elif mes == 2:  # Febrero
+        return 29 if es_bisiesto(anio) else 28
+    else:
+        return -1  # Error (nunca debería ocurrir)
 
-def validar_fecha(entrada):
-    """Valida que una fecha tenga el formato correcto (dd/mm/yyyy) y exista."""
+def validar_fecha(fecha):
+    """ Valida si una fecha ingresada es correcta """
     try:
-        fecha_valida = datetime.strptime(entrada, "%d/%m/%Y")
-        return fecha_valida.strftime("%d/%m/%Y")  # Retorna la fecha bien formateada
-    except ValueError:
-        return None  # Indica que la fecha no es válida
+        partes = fecha.split("/")
+        if len(partes) != 3:
+            raise ValueError("Formato incorrecto. Use DD/MM/AAAA")
 
+        dia, mes, anio = partes
 
-def solicitar_fecha():
-    """Solicita al usuario ingresar una fecha válida."""
-    while True:
-        fecha = input("Ingrese una fecha (dd/mm/yyyy): ").strip()
-        fecha_validada = validar_fecha(fecha)
+        # Convertir a enteros
+        dia = int(dia)
+        mes = int(mes)
+        anio = int(anio)
 
-        if fecha_validada:
-            print(f"✅ Fecha válida: {fecha_validada}")
-            return fecha_validada
-        else:
-            print("❌ Error: Fecha inválida. Intente nuevamente.")
+        if mes < 1 or mes > 12:
+            raise ValueError("El mes debe estar entre 1 y 12")
 
+        dias_en_mes = obtener_dias_mes(mes, anio)
 
-def guardar_fecha_en_archivo(fecha, archivo="fechas_validas.txt"):
-    """Guarda la fecha validada en un archivo de texto."""
-    try:
-        with open(archivo, "a", encoding="utf-8") as f:
-            f.write(f"{fecha}\n")
-        print(f"✅ Fecha guardada en {archivo}")
-    except Exception as e:
-        print(f"❌ Error al guardar la fecha: {e}")
+        if dia < 1 or dia > dias_en_mes:
+            raise ValueError(f"El día debe estar entre 1 y {dias_en_mes} para el mes {mes}")
 
+        return True
 
-def main():
-    print("📅 Validador de Fechas")
-    fecha = solicitar_fecha()
-    guardar_fecha_en_archivo(fecha)
+    except ValueError as e:
+        print(f"Error: {e}")
+        return False
 
-
-if __name__ == "__main__":
-    main()
+# Solicitar la fecha hasta que el usuario ingrese una válida
+while True:
+    fecha = input("Ingrese una fecha en formato DD/MM/AAAA: ")
+    if validar_fecha(fecha):
+        print("✅ Fecha válida")
+        break
+    else:
+        print("❌ Fecha inválida. Inténtelo nuevamente.")
