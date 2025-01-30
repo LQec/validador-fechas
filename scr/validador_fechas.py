@@ -1,51 +1,51 @@
+class FechaInvalidaError(Exception):
+    """Excepción personalizada para fechas inválidas"""
+    pass
+
 def es_bisiesto(anio):
-    """ Verifica si un año es bisiesto """
+    """Verifica si un año es bisiesto"""
     return (anio % 4 == 0 and anio % 100 != 0) or (anio % 400 == 0)
 
 def obtener_dias_mes(mes, anio):
-    """ Retorna la cantidad de días de un mes en un año determinado """
-    if mes in [1, 3, 5, 7, 8, 10, 12]:  # Meses con 31 días
+    """Devuelve el número de días en un mes considerando los años bisiestos"""
+    if mes in {1, 3, 5, 7, 8, 10, 12}:
         return 31
-    elif mes in [4, 6, 9, 11]:  # Meses con 30 días
+    elif mes in {4, 6, 9, 11}:
         return 30
-    elif mes == 2:  # Febrero
+    elif mes == 2:
         return 29 if es_bisiesto(anio) else 28
     else:
-        return -1  # Error (nunca debería ocurrir)
+        raise FechaInvalidaError("Mes inválido. Debe estar entre 1 y 12.")
 
 def validar_fecha(fecha):
-    """ Valida si una fecha ingresada es correcta """
+    """Verifica si la fecha ingresada es válida"""
     try:
         partes = fecha.split("/")
         if len(partes) != 3:
-            raise ValueError("Formato incorrecto. Use DD/MM/AAAA")
+            raise FechaInvalidaError("Formato incorrecto. Use DD/MM/AAAA.")
 
-        dia, mes, anio = partes
+        dia, mes, anio = map(int, partes)
 
-        # Convertir a enteros
-        dia = int(dia)
-        mes = int(mes)
-        anio = int(anio)
+        if anio < 1:
+            raise FechaInvalidaError("El año debe ser mayor a 0.")
 
-        if mes < 1 or mes > 12:
-            raise ValueError("El mes debe estar entre 1 y 12")
+        dias_maximos = obtener_dias_mes(mes, anio)
 
-        dias_en_mes = obtener_dias_mes(mes, anio)
+        if not (1 <= dia <= dias_maximos):
+            raise FechaInvalidaError(f"Día inválido para el mes {mes}. Debe estar entre 1 y {dias_maximos}.")
 
-        if dia < 1 or dia > dias_en_mes:
-            raise ValueError(f"El día debe estar entre 1 y {dias_en_mes} para el mes {mes}")
+        print("Fecha válida:", fecha)
 
-        return True
-
-    except ValueError as e:
+    except ValueError:
+        print("Error: Ingrese solo números en el formato DD/MM/AAAA.")
+    except FechaInvalidaError as e:
         print(f"Error: {e}")
-        return False
 
-# Solicitar la fecha hasta que el usuario ingrese una válida
+# Solicitar fecha al usuario con validación
 while True:
-    fecha = input("Ingrese una fecha en formato DD/MM/AAAA: ")
-    if validar_fecha(fecha):
-        print("✅ Fecha válida")
-        break
-    else:
-        print("❌ Fecha inválida. Inténtelo nuevamente.")
+    try:
+        fecha_usuario = input("Ingrese una fecha en formato DD/MM/AAAA: ")
+        validar_fecha(fecha_usuario)
+        break  # Salir del bucle si la fecha es válida
+    except Exception as e:
+        print("Error inesperado:", e)
